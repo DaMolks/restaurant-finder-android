@@ -11,12 +11,9 @@ import com.example.restaurantfinder.model.Restaurant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RestaurantCard(
-    restaurant: Restaurant,
-    modifier: Modifier = Modifier
-) {
+fun RestaurantCard(restaurant: Restaurant) {
     Card(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
     ) {
