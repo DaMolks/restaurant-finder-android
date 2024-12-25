@@ -5,9 +5,12 @@ import com.example.restaurantfinder.model.Restaurant
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
+import com.example.restaurantfinder.data.mapper.PlaceMapper
 import kotlinx.coroutines.tasks.await
 
 class NearbySearcher(private val placesClient: PlacesClient) {
+    private val placeMapper = PlaceMapper()
+    
     private val placeFields = listOf(
         Place.Field.NAME,
         Place.Field.ADDRESS,
@@ -26,7 +29,7 @@ class NearbySearcher(private val placesClient: PlacesClient) {
             val response = placesClient.findCurrentPlace(request).await()
             response.placeLikelihoods
                 .filter { isRestaurant(it.place) }
-                .map { PlaceMapper().convertToRestaurant(it.place, it.place.latLng) }
+                .map { placeMapper.convertToRestaurant(it.place, it.place.latLng) }
                 .sortedByDescending { it.rating }
         } catch (e: Exception) {
             emptyList()
