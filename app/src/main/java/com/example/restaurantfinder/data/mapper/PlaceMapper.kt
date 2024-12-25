@@ -33,17 +33,18 @@ class PlaceMapper {
     }
 
     private fun getCuisineType(place: Place): String {
-        // Récupération safe des types et filtrage
-        val cuisineTypes = place.types
-            ?.map { it.toString() }
-            ?.filter { type ->
-                type.contains("cuisine", ignoreCase = true) || 
-                type.contains("food", ignoreCase = true) || 
-                type == "restaurant"
+        // Utiliser l'API recommandée pour obtenir les types
+        val placeTypes = place.types
+        return placeTypes
+            ?.mapNotNull { it?.name }
+            ?.firstOrNull { type ->
+                type.contains("RESTAURANT", ignoreCase = true) || 
+                type.contains("FOOD", ignoreCase = true) || 
+                type.contains("CUISINE", ignoreCase = true)
             }
-
-        return cuisineTypes?.firstOrNull()
             ?.replace("_", " ")
+            ?.replace("CUISINE", "")
+            ?.trim()
             ?.replaceFirstChar { it.uppercase() } 
             ?: "Restaurant"
     }
