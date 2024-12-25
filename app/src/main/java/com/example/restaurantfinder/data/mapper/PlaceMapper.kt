@@ -33,13 +33,14 @@ class PlaceMapper {
     }
 
     private fun getCuisineType(place: Place): String {
-        // Méthode alternative pour déterminer le type de cuisine
+        val name = place.name ?: ""
+        
         return when {
-            place.name?.contains("Pizza", ignoreCase = true) -> "Pizza"
-            place.name?.contains("Burger", ignoreCase = true) -> "Fast Food"
-            place.name?.contains("Sushi", ignoreCase = true) -> "Japonais"
-            place.name?.contains("Café", ignoreCase = true) -> "Café"
-            place.name?.contains("Restaurant", ignoreCase = true) -> "Restaurant"
+            name.contains("Pizza", ignoreCase = true) -> "Pizza"
+            name.contains("Burger", ignoreCase = true) -> "Fast Food"
+            name.contains("Sushi", ignoreCase = true) -> "Japonais"
+            name.contains("Café", ignoreCase = true) -> "Café"
+            name.contains("Restaurant", ignoreCase = true) -> "Restaurant"
             else -> "Restaurant"
         }
     }
