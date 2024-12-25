@@ -54,7 +54,7 @@ fun LocationSearchBar(
 
                             val request = FindAutocompletePredictionsRequest.builder()
                                 .setLocationBias(bias)
-                                .setTypesFilter(listOf("locality", "postal_code"))
+                                .setTypeFilter(TypeFilter.CITIES)
                                 .setQuery(newQuery)
                                 .setCountries("FR")
                                 .build()
@@ -65,6 +65,10 @@ fun LocationSearchBar(
                             
                             predictions = response.autocompletePredictions
                             isDropdownExpanded = predictions.isNotEmpty()
+                            
+                            if (predictions.isEmpty()) {
+                                Log.d("SearchBar", "Aucune prédiction trouvée pour: $newQuery")
+                            }
                         } catch (e: Exception) {
                             Log.e("SearchBar", "Erreur recherche: ${e.message}")
                             e.printStackTrace()
