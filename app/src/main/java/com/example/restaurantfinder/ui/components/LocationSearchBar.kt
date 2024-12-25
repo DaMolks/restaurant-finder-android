@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.TypeFilter
@@ -44,11 +43,12 @@ fun LocationSearchBar(
                             .build()
 
                         try {
-                            val response = placesClient.findAutocompletePredictions(request)
+                            val response = placesClient.findAutocompletePredictions(request).await()
                             predictions = response.autocompletePredictions
-                            isDropdownExpanded = true
+                            isDropdownExpanded = predictions.isNotEmpty()
                         } catch (e: Exception) {
                             predictions = emptyList()
+                            isDropdownExpanded = false
                         }
                     }
                 } else {
@@ -63,7 +63,7 @@ fun LocationSearchBar(
             singleLine = true
         )
 
-        if (isDropdownExpanded && predictions.isNotEmpty()) {
+        if (isDropdownExpanded) {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
