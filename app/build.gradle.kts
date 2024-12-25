@@ -16,6 +16,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        manifestPlaceholders["MAPS_API_KEY"] = project.findProperty("MAPS_API_KEY")?.toString() ?: ""
     }
 
     buildTypes {
@@ -27,17 +29,24 @@ android {
             )
         }
     }
+    
+    buildFeatures {
+        buildConfig = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
+    
     kotlinOptions {
         jvmTarget = "21"
     }
+    
     buildFeatures {
         compose = true
-        buildConfig = true
     }
+    
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.6"
     }
