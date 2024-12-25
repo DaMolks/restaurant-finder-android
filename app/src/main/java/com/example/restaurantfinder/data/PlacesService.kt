@@ -5,7 +5,6 @@ import android.util.Log
 import com.example.restaurantfinder.model.Restaurant
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.AutocompletePrediction
-import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.api.net.*
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.tasks.await
@@ -69,15 +68,58 @@ class PlacesService(private val placesClient: PlacesClient) {
     }
 
     suspend fun searchRestaurantsByLocation(prediction: AutocompletePrediction): List<Restaurant> {
-        // Code existant pour searchRestaurantsByLocation
-        return emptyList()
+        try {
+            val placeRequest = FetchPlaceRequest.newInstance(prediction.placeId, listOf(Place.Field.LAT_LNG))
+            val placeResponse = placesClient.fetchPlace(placeRequest).await()
+            val location = placeResponse.place.latLng
+
+            if (location != null) {
+                val request = FindAutocompletePredictionsRequest.builder()
+                    .setLocationBias(RectangularBounds.newInstance(
+                        LatLng(location.latitude - 0.01, location.longitude - 0.01),
+                        LatLng(location.latitude + 0.01, location.longitude + 0.01)
+                    ))
+                    .setTypesFilter(listOf("restaurant", "food", "cafe"))
+                    .build()
+
+                val response = placesClient.findAutocompletePredictions(request).await()
+                return response.autocompletePredictions.mapNotNull { restaurantPrediction ->
+                    try {
+                        val detailsRequest = FetchPlaceRequest.newInstance(restaurantPrediction.placeId, placeFields)
+                        val detailsResponse = placesClient.fetchPlace(detailsRequest).await()
+                        val place = detailsResponse.place
+
+                        if (place.latLng != null) {
+                            Restaurant(
+                                name = place.name ?: "",
+                                cuisine = getCuisineType(place),
+                                address = place.address ?: "",
+                                rating = place.rating?.toDouble() ?: 0.0,
+                                schedule = place.openingHours?.weekdayText?.joinToString("\n") 
+                                          ?: "Horaires non disponibles",
+                                phone = place.phoneNumber ?: "Non disponible",
+                                latitude = place.latLng!!.latitude,
+                                longitude = place.latLng!!.longitude
+                            )
+                        } else null
+                    } catch (e: Exception) {
+                        Log.e("PlacesService", "Erreur détails restaurant: ${e.message}")
+                        null
+                    }
+                }
+            }
+            return emptyList()
+        } catch (e: Exception) {
+            Log.e("PlacesService", "Erreur recherche par lieu: ${e.message}")
+            return emptyList()
+        }
     }
 
     private fun getCuisineType(place: Place): String {
-        return place.types?.firstOrNull { type -> 
-            type.toString().contains("CUISINE") || 
+        return place.getTypes()?.firstOrNull { type -> 
+            type.toString().contains("RESTAURANT") || 
             type.toString().contains("FOOD") || 
-            type.toString().contains("RESTAURANT")
-        }?.toString()?.replace("_", " ")?.lowercase()?.capitalize() ?: "Restaurant"
+            type.toString().contains("CAFE")
+        }?.toString()?.replace("_", " ")?.replaceFirstChar { it.uppercase() } ?: "Restaurant"
     }
 }
