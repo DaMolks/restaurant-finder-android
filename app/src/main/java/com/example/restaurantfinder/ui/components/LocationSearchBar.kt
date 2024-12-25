@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -14,6 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.TypeFilter
@@ -36,26 +43,27 @@ fun LocationSearchBar(
         unfocusedContainerColor = Color.White
     )
 ) {
-    var searchQuery by remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf(TextFieldValue()) }
     var predictions by remember { mutableStateOf<List<AutocompletePrediction>>(emptyList()) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
     var searchJob by remember { mutableStateOf<Job?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(modifier = modifier) {
         TextField(
             value = searchQuery,
-            onValueChange = { newQuery ->
-                searchQuery = newQuery
+            onValueChange = { newValue ->
+                searchQuery = newValue
                 searchJob?.cancel()
-                if (newQuery.length >= 2) {
+                if (newValue.text.length >= 2) {
                     searchJob = coroutineScope.launch {
-                        Log.d("SearchBar", "Recherche pour: $newQuery")
+                        Log.d("SearchBar", "Recherche pour: ${newValue.text}")
                         delay(300) // Délai pour éviter trop de requêtes
                         val request = FindAutocompletePredictionsRequest.builder()
                             .setTypeFilter(TypeFilter.CITIES)
-                            .setQuery(newQuery)
+                            .setQuery(newValue.text)
                             .build()
 
                         try {
@@ -89,9 +97,17 @@ fun LocationSearchBar(
                     contentDescription = "Rechercher"
                 )
             },
-            // Supprimer l'indicateur (trait)
-            textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
-            interactionSource = remember { MutableInteractionSource() }
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    keyboardController?.hide()
+                    // Vous pouvez ajouter une action de recherche ici si nécessaire
+                }
+            ),
+            textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface)
         )
 
         if (isDropdownExpanded) {
@@ -106,9 +122,10 @@ fun LocationSearchBar(
                         supportingContent = { Text(prediction.getSecondaryText(null).toString()) },
                         modifier = Modifier.clickable {
                             Log.d("SearchBar", "Ville sélectionnée: ${prediction.getFullText(null)}")
-                            searchQuery = prediction.getPrimaryText(null).toString()
+                            searchQuery = TextFieldValue(prediction.getPrimaryText(null).toString())
                             isDropdownExpanded = false
                             onLocationSelected(prediction)
+                            keyboardController?.hide()
                         }
                     )
                 }
