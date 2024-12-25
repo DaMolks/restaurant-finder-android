@@ -26,10 +26,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.google.android.libraries.places.api.model.AutocompletePrediction
-import com.google.android.libraries.places.api.model.TypeFilter
+import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -77,6 +76,7 @@ fun LocationSearchBar(
                                 if (searchQuery.text == newValue.text) {
                                     val request = FindAutocompletePredictionsRequest.builder()
                                         .setQuery(newValue.text)
+                                        .setPlaceTypes(listOf(Place.Type.ADMINISTRATIVE_AREA_LEVEL_1, Place.Type.LOCALITY))
                                         .build()
 
                                     val response = placesClient.findAutocompletePredictions(request).await()
