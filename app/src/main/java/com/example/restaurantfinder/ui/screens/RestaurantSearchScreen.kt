@@ -17,6 +17,8 @@ import com.example.restaurantfinder.model.Restaurant
 import com.example.restaurantfinder.ui.components.*
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.launch
@@ -98,18 +100,33 @@ fun RestaurantSearchScreen(
                         scope.launch {
                             isLoading = true
                             try {
+                                // Récupérer les détails du lieu
+                                val placeFields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG)
+                                val request = FetchPlaceRequest.newInstance(prediction.placeId, placeFields)
+                                val placeResponse = placesClient.fetchPlace(request).await()
+                                val place = placeResponse.place
+
+                                // Rechercher les restaurants
                                 val results = placesService.searchRestaurantsByLocation(prediction)
                                 restaurants = results
+
                                 // Mettre à jour la position de la caméra
-                                cameraPositionState.position = CameraPosition.fromLatLngZoom(
-                                    LatLng(prediction.latLng?.latitude ?: defaultLocation.latitude, 
-                                           prediction.latLng?.longitude ?: defaultLocation.longitude), 
-                                    12f
-                                )
+                                place.latLng?.let { latLng ->
+                                    cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                                        latLng, 
+                                        12f
+                                    )
+                                } ?: run {
+                                    // Utiliser la position par défaut si aucune coordonnée n'est trouvée
+                                    cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                                        defaultLocation, 
+                                        12f
+                                    )
+                                }
                             } catch (e: Exception) {
                                 Toast.makeText(
                                     context,
-                                    "Erreur lors de la recherche",
+                                    "Erreur lors de la recherche: ${e.message}",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             } finally {
