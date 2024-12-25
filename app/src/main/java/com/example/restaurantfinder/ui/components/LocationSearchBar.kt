@@ -6,6 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -29,7 +31,10 @@ fun LocationSearchBar(
     onLocationSelected: (AutocompletePrediction) -> Unit,
     modifier: Modifier = Modifier,
     shape: Shape = MaterialTheme.shapes.medium,
-    colors: TextFieldColors = TextFieldDefaults.colors()
+    colors: TextFieldColors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.White,
+        unfocusedContainerColor = Color.White
+    )
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var predictions by remember { mutableStateOf<List<AutocompletePrediction>>(emptyList()) }
@@ -73,11 +78,20 @@ fun LocationSearchBar(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .height(56.dp),
             placeholder = { Text("Entrez une ville ou un code postal") },
             singleLine = true,
             shape = shape,
-            colors = colors
+            colors = colors,
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Rechercher"
+                )
+            },
+            // Supprimer l'indicateur (trait)
+            textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onSurface),
+            interactionSource = remember { MutableInteractionSource() }
         )
 
         if (isDropdownExpanded) {
