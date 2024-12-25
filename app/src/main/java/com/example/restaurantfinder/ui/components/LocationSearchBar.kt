@@ -49,7 +49,6 @@ fun LocationSearchBar(
     var searchQuery by remember { mutableStateOf(TextFieldValue()) }
     var predictions by remember { mutableStateOf<List<AutocompletePrediction>>(emptyList()) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
-    var searchJob by remember { mutableStateOf<Job?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -61,26 +60,31 @@ fun LocationSearchBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .zIndex(10f) // Assurer que la barre de recherche est au-dessus de tout
+                .zIndex(10f)
         ) {
             TextField(
                 value = searchQuery,
                 onValueChange = { newValue ->
                     searchQuery = newValue
-                    searchJob?.cancel()
                     if (newValue.text.length >= 2) {
-                        searchJob = coroutineScope.launch {
-                            Log.d("LocationSearchBar", "Recherche de: ${newValue.text}")
-                            delay(300)
-                            val request = FindAutocompletePredictionsRequest.builder()
-                                .setQuery(newValue.text)
-                                .build()
-
+                        // Lancer la recherche dans la coroutine du scope courant
+                        coroutineScope.launch {
                             try {
-                                val response = placesClient.findAutocompletePredictions(request).await()
-                                Log.d("LocationSearchBar", "Réponse reçue: ${response.autocompletePredictions.size} prédictions")
-                                predictions = response.autocompletePredictions
-                                isDropdownExpanded = predictions.isNotEmpty()
+                                Log.d("LocationSearchBar", "Recherche de: ${newValue.text}")
+                                delay(300) // Délai pour éviter trop de requêtes
+                                
+                                // Ne pas relancer si la valeur a changé
+                                if (searchQuery.text == newValue.text) {
+                                    val request = FindAutocompletePredictionsRequest.builder()
+                                        .setQuery(newValue.text)
+                                        .build()
+
+                                    val response = placesClient.findAutocompletePredictions(request).await()
+                                    Log.d("LocationSearchBar", "Réponse reçue: ${response.autocompletePredictions.size} prédictions")
+                                    
+                                    predictions = response.autocompletePredictions
+                                    isDropdownExpanded = predictions.isNotEmpty()
+                                }
                             } catch (e: Exception) {
                                 Log.e("LocationSearchBar", "Erreur de recherche", e)
                                 Toast.makeText(context, "Erreur de recherche: ${e.message}", Toast.LENGTH_SHORT).show()
