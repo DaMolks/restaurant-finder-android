@@ -5,15 +5,12 @@ import android.util.Log
 import com.example.restaurantfinder.model.Restaurant
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.model.AutocompletePrediction
-import com.google.android.libraries.places.api.model.LocationBias
-import com.google.android.libraries.places.api.model.LocationBiasRectangularBounds
 import com.google.android.libraries.places.api.net.*
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.libraries.places.api.model.LocationRestriction
 import kotlinx.coroutines.tasks.await
 
 class PlacesService(private val placesClient: PlacesClient) {
-    // ... reste du code identique, mais remplacer RectangularBounds par LocationBiasRectangularBounds
+
     private val placeFields = listOf(
         Place.Field.NAME,
         Place.Field.ADDRESS,
@@ -30,11 +27,9 @@ class PlacesService(private val placesClient: PlacesClient) {
             Log.d("PlacesService", "Recherche restaurants près de: ${location.latitude}, ${location.longitude}")
             
             val request = FindAutocompletePredictionsRequest.builder()
-                .setLocationBias(LocationBiasRectangularBounds.newInstance(
-                    LatLng(location.latitude - 0.01, location.longitude - 0.01),
-                    LatLng(location.latitude + 0.01, location.longitude + 0.01)
-                ))
-                .setTypesFilter(listOf("restaurant", "food", "cafe"))
+                .setQuery("restaurant")
+                .setOrigin(LatLng(location.latitude, location.longitude))
+                .setCountries("FR")
                 .build()
 
             val response = placesClient.findAutocompletePredictions(request).await()
@@ -78,11 +73,9 @@ class PlacesService(private val placesClient: PlacesClient) {
 
             if (location != null) {
                 val request = FindAutocompletePredictionsRequest.builder()
-                    .setLocationBias(LocationBiasRectangularBounds.newInstance(
-                        LatLng(location.latitude - 0.01, location.longitude - 0.01),
-                        LatLng(location.latitude + 0.01, location.longitude + 0.01)
-                    ))
-                    .setTypesFilter(listOf("restaurant", "food", "cafe"))
+                    .setQuery("restaurant")
+                    .setOrigin(location)
+                    .setCountries("FR")
                     .build()
 
                 val response = placesClient.findAutocompletePredictions(request).await()
