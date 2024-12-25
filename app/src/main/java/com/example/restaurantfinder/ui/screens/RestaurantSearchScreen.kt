@@ -27,12 +27,181 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.android.compose.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.tasks.await
 
-// Reste du code identique, sauf :
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RestaurantSearchScreen(
+    currentLocation: Location?,
+    placesClient: PlacesClient,
+    placesService: PlacesService
+) {
+    var restaurants by remember { mutableStateOf<List<Restaurant>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(false) }
+    var showResults by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    val defaultLocation = LatLng(48.8566, 2.3522)
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(
+            currentLocation?.let { LatLng(it.latitude, it.longitude) } ?: defaultLocation, 
+            12f
+        )
+    }
+
+    LaunchedEffect(currentLocation) {
+        if (currentLocation != null) {
+            isLoading = true
+            try {
+                restaurants = withContext(Dispatchers.IO) {
+                    placesService.searchNearbyRestaurants(currentLocation)
+                }.sortedByDescending { it.rating }
+                showResults = true
+                cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                    LatLng(currentLocation.latitude, currentLocation.longitude), 
+                    12f
+                )
+            } catch (e: Exception) {
+                Toast.makeText(context, "Erreur: ${e.message}", Toast.LENGTH_SHORT).show()
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            properties = MapProperties(isMyLocationEnabled = true),
+            uiSettings = MapUiSettings(
+                zoomControlsEnabled = false,
+                compassEnabled = true,
+                myLocationButtonEnabled = false
+            )
+        ) {
+            restaurants.forEach { restaurant ->
+                Marker(
+                    state = MarkerState(LatLng(restaurant.latitude, restaurant.longitude)),
+                    title = restaurant.name
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            LocationSearchBar(
+                placesClient = placesClient,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = MaterialTheme.shapes.large,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.White.copy(alpha = 0.9f),
+                    unfocusedContainerColor = Color.White.copy(alpha = 0.8f)
+                ),
+                onLocationSelected = { prediction ->
+                    coroutineScope.launch {
+                        try {
+                            isLoading = true
+                            val placeFields = listOf(Place.Field.LAT_LNG)
+                            val request = FetchPlaceRequest.newInstance(prediction.placeId, placeFields)
+                            val placeResponse = withContext(Dispatchers.IO) {
+                                placesClient.fetchPlace(request).await()
+                            }
+
+                            placeResponse.place.latLng?.let { latLng ->
+                                restaurants = withContext(Dispatchers.IO) {
+                                    placesService.searchRestaurantsByLocation(prediction)
+                                }.sortedByDescending { it.rating }
+                                showResults = true
+                                cameraPositionState.position = CameraPosition.fromLatLngZoom(latLng, 14f)
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Erreur: ${e.message}", Toast.LENGTH_SHORT).show()
+                        } finally {
+                            isLoading = false
+                        }
+                    }
+                }
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .align(if (showResults) Alignment.TopEnd else Alignment.BottomEnd)
+                .padding(16.dp)
+                .padding(bottom = if (showResults) 0.dp else 80.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (showResults) {
                 FloatingActionButton(
                     onClick = { showResults = false },
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Icon(Icons.Filled.KeyboardArrowDown, "Masquer les résultats")
                 }
+            }
+            FloatingActionButton(
+                onClick = {
+                    currentLocation?.let { location ->
+                        cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                            LatLng(location.latitude, location.longitude), 
+                            14f
+                        )
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Icon(Icons.Filled.LocationOn, "Ma position")
+            }
+        }
+
+        AnimatedVisibility(
+            visible = showResults,
+            modifier = Modifier
+                .align(Alignment.BottomCenter),
+            enter = slideInVertically(initialOffsetY = { it }),
+            exit = slideOutVertically(targetOffsetY = { it })
+        ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.5f),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                tonalElevation = 8.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "${restaurants.size} restaurants trouvés",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
+                    } else {
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(restaurants) { restaurant ->
+                                RestaurantCard(restaurant = restaurant)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
