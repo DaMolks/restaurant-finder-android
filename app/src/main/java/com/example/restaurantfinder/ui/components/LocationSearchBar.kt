@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
@@ -25,6 +24,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.TypeFilter
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
@@ -54,11 +54,15 @@ fun LocationSearchBar(
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    Box(
+    Column(
         modifier = modifier
             .fillMaxWidth()
     ) {
-        Column {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .zIndex(10f) // Assurer que la barre de recherche est au-dessus de tout
+        ) {
             TextField(
                 value = searchQuery,
                 onValueChange = { newValue ->
@@ -67,10 +71,9 @@ fun LocationSearchBar(
                     if (newValue.text.length >= 2) {
                         searchJob = coroutineScope.launch {
                             Log.d("LocationSearchBar", "Recherche de: ${newValue.text}")
-                            delay(300) // Délai pour éviter trop de requêtes
+                            delay(300)
                             val request = FindAutocompletePredictionsRequest.builder()
                                 .setQuery(newValue.text)
-                                .setTypeFilter(TypeFilter.CITIES)
                                 .build()
 
                             try {
@@ -78,7 +81,6 @@ fun LocationSearchBar(
                                 Log.d("LocationSearchBar", "Réponse reçue: ${response.autocompletePredictions.size} prédictions")
                                 predictions = response.autocompletePredictions
                                 isDropdownExpanded = predictions.isNotEmpty()
-                                Log.d("LocationSearchBar", "Liste déroulante visible : $isDropdownExpanded")
                             } catch (e: Exception) {
                                 Log.e("LocationSearchBar", "Erreur de recherche", e)
                                 Toast.makeText(context, "Erreur de recherche: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -112,38 +114,39 @@ fun LocationSearchBar(
                     onSearch = { keyboardController?.hide() }
                 )
             )
+        }
 
-            // Liste déroulante des prédictions
-            if (isDropdownExpanded) {
-                Log.d("LocationSearchBar", "Affichage de ${predictions.size} prédictions")
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 200.dp)
-                        .border(
-                            width = 1.dp, 
-                            color = MaterialTheme.colorScheme.outline,
-                            shape = MaterialTheme.shapes.medium
+        // Liste déroulante des prédictions
+        if (isDropdownExpanded) {
+            Log.d("LocationSearchBar", "Affichage de ${predictions.size} prédictions")
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 200.dp)
+                    .zIndex(9f)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline,
+                        shape = MaterialTheme.shapes.medium
+                    )
+                    .background(Color.White)
+            ) {
+                LazyColumn {
+                    items(predictions) { prediction ->
+                        ListItem(
+                            headlineContent = { Text(prediction.getPrimaryText(null).toString()) },
+                            supportingContent = { Text(prediction.getSecondaryText(null).toString()) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    searchQuery = TextFieldValue(prediction.getPrimaryText(null).toString())
+                                    isDropdownExpanded = false
+                                    onLocationSelected(prediction)
+                                    keyboardController?.hide()
+                                }
+                                .background(Color.White)
+                                .padding(16.dp)
                         )
-                ) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        items(predictions) { prediction ->
-                            ListItem(
-                                headlineContent = { Text(prediction.getPrimaryText(null).toString()) },
-                                supportingContent = { Text(prediction.getSecondaryText(null).toString()) },
-                                modifier = Modifier
-                                    .clickable {
-                                        searchQuery = TextFieldValue(prediction.getPrimaryText(null).toString())
-                                        isDropdownExpanded = false
-                                        onLocationSelected(prediction)
-                                        keyboardController?.hide()
-                                    }
-                                    .background(Color.White)
-                                    .padding(16.dp)
-                            )
-                        }
                     }
                 }
             }
