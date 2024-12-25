@@ -1,1 +1,64 @@
-IyBSZXN0YXVyYW50IEZpbmRlcgoKQXBwbGljYXRpb24gQW5kcm9pZCBkZSByZWNoZXJjaGUgZGUgcmVzdGF1cmFudHMgYXZlYyBnw6lvbG9jYWxpc2F0aW9uLgoKIyMgRm9uY3Rpb25uYWxpdMOpcwoKLSBHw6lvbG9jYWxpc2F0aW9uIGF1dG9tYXRpcXVlCi0gUmVjaGVyY2hlIGRlIHJlc3RhdXJhbnRzIMOgIHByb3hpbWl0w6kKLSBSZWNoZXJjaGUgcGFyIHZpbGxlCi0gQWZmaWNoYWdlIGRlcyBkw6l0YWlscyBkZXMgcmVzdGF1cmFudHMgKG5vdGUsIGRpc3RhbmNlLCBob3JhaXJlcywgZXRjLikKCiMjIENvbmZpZ3VyYXRpb24gcmVxdWlzZQoKLSBBbmRyb2lkIFN0dWRpbyBIZWRnZWhvZyB8IDIwMjMuMS4xIG91IHN1cMOpcmlldXIKLSBKREsgMTcKLSBBbmRyb2lkIFNESyBBUEkgMzQKLSBLb3RsaW4gMS45LjAKCiMjIEluc3RhbGxhdGlvbgoKMS4gQ2xvbmV6IGxlIHJlcG9zaXRvcnkKYGBgYmFzaApnaXQgY2xvbmUgaHR0cHM6Ly9naXRodWIuY29tL0RhTW9sa3MvcmVzdGF1cmFudC1maW5kZXItYW5kcm9pZC5naXQKYGBgCgoyLiBDb25maWd1cmF0aW9uIGRlIGwnQVBJIEdvb2dsZSBNYXBzCgojIyMgw4l0YXBlcyBkZSBjb25maWd1cmF0aW9uIDoKCjEuIENyw6lleiB1biBwcm9qZXQgZGFucyBsYSBHb29nbGUgQ2xvdWQgQ29uc29sZQoyLiBBY3RpdmV6IGxlcyBBUEkgc3VpdmFudGVzIDoKICAgLSBHb29nbGUgTWFwcyBTREsgZm9yIEFuZHJvaWQKICAgLSBQbGFjZXMgQVBJCiAgIC0gR2VvY29kaW5nIEFQSQogICAtIEdlb2xvY2F0aW9uIEFQSQoKMy4gR8OpbsOpcmV6IHVuZSBjbMOpIEFQSSBhdmVjIGxlcyByZXN0cmljdGlvbnMgc3VpdmFudGVzIDoKICAgLSBSZXN0cmVpbmRyZSBhdSBwYWNrYWdlIEFuZHJvaWQgOiBjb20uZXhhbXBsZS5yZXN0YXVyYW50ZmluZGVyCiAgIC0gTGltaXRlciBhdXggQVBJIG7DqWNlc3NhaXJlcwoKNC4gQ3LDqWV6IG91IG1vZGlmaWV6IGxlIGZpY2hpZXIgYGxvY2FsLnByb3BlcnRpZXNgIMOgIGxhIHJhY2luZSBkdSBwcm9qZXQKYGBgcHJvcGVydGllcwpzZGsuZGlyPS9wYXRoL3RvL3lvdXIvQW5kcm9pZC9TZGsKTUFQU19BUElfS0VZPXZvdHJlX2NsZV9hcGlfaWNpCmBgYAoKNS4gT3V2cmV6IGxlIHByb2pldCBkYW5zIEFuZHJvaWQgU3R1ZGlvCgo2LiBTeW5jaHJvbmlzZXogbGUgcHJvamV0IGF2ZWMgR3JhZGxlCgo3LiBMYW5jZXogbCdhcHBsaWNhdGlvbgoKIyMgUsOpc29sdXRpb24gZGVzIGVycmV1cnMgQVBJCgotIEVycmV1ciA5MDExIDogVsOpcmlmaWV6IHF1ZSB0b3V0ZXMgbGVzIEFQSSBzb250IGFjdGl2w6llcyBldCBxdWUgbGEgY2zDqSBlc3QgY29ycmVjdGVtZW50IGNvbmZpZ3Vyw6llCi0gVsOpcmlmaWV6IGxlcyByZXN0cmljdGlvbnMgZGUgbGEgY2zDqSBBUEkgZGFucyBHb29nbGUgQ2xvdWQgQ29uc29sZQotIEFzc3VyZXotdm91cyBxdWUgbGUgcGFja2FnZSBjb3JyZXNwb25kIGV4YWN0ZW1lbnQgw6AgYGNvbS5leGFtcGxlLnJlc3RhdXJhbnRmaW5kZXJgCgojIyBEw6lwYW5uYWdlCgpTaSB2b3VzIHJlbmNvbnRyZXogZGVzIHByb2Jsw6htZXMgOgotIFbDqXJpZmlleiB0YSBjb25zb2xlIEdvb2dsZSBDbG91ZAotIFLDqWfDqW7DqXJleiB2b3RyZSBjbMOpIEFQSQotIEFzc3VyZXotdm91cyBxdWUgbGVzIEFQSSByZXF1aXNlcyBzb250IGFjdGl2w6llcw==
+# Restaurant Finder
+
+Application Android de recherche de restaurants avec géolocalisation.
+
+## Fonctionnalités
+
+- Géolocalisation automatique
+- Recherche de restaurants à proximité
+- Recherche par ville
+- Affichage des détails des restaurants (note, distance, horaires, etc.)
+
+## Configuration requise
+
+- Android Studio Hedgehog | 2023.1.1 ou supérieur
+- JDK 17
+- Android SDK API 34
+- Kotlin 1.9.0
+
+## Installation
+
+1. Clonez le repository
+```bash
+git clone https://github.com/DaMolks/restaurant-finder-android.git
+```
+
+2. Configuration de l'API Google Maps
+
+### Étapes de configuration :
+
+1. Créez un projet dans la Google Cloud Console
+2. Activez les API suivantes :
+   - Google Maps SDK for Android
+   - Places API
+   - Geocoding API
+   - Geolocation API
+
+3. Générez une clé API avec les restrictions suivantes :
+   - Restreindre au package Android : com.example.restaurantfinder
+   - Limiter aux API nécessaires
+
+4. Créez ou modifiez le fichier `local.properties` à la racine du projet
+```properties
+sdk.dir=/path/to/your/Android/Sdk
+MAPS_API_KEY=votre_clé_api_ici
+```
+
+5. Ouvrez le projet dans Android Studio
+
+6. Synchronisez le projet avec Gradle
+
+7. Lancez l'application
+
+## Résolution des erreurs API
+
+- Erreur 9011 : Vérifiez que toutes les API sont activées et que la clé est correctement configurée
+- Vérifiez les restrictions de la clé API dans Google Cloud Console
+- Assurez-vous que le package correspond exactement à `com.example.restaurantfinder`
+
+## Dépannage
+
+Si vous rencontrez des problèmes :
+- Vérifiez la console Google Cloud
+- Régénérez votre clé API
+- Assurez-vous que les API requises sont activées
