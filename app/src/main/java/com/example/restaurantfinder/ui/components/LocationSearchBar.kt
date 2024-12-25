@@ -15,6 +15,7 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +48,7 @@ fun LocationSearchBar(
                             predictions = response.autocompletePredictions
                             isDropdownExpanded = predictions.isNotEmpty()
                         } catch (e: Exception) {
+                            e.printStackTrace()
                             predictions = emptyList()
                             isDropdownExpanded = false
                         }
