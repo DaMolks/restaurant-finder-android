@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.LocationBias
 import com.google.android.libraries.places.api.model.RectangularBounds
+import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.gms.maps.model.LatLng
@@ -66,9 +67,9 @@ fun LocationSearchBar(
                             Log.d("SearchBar", "Reçu ${response.autocompletePredictions.size} prédictions")
                             
                             predictions = response.autocompletePredictions.filter { prediction ->
-                                prediction.placeTypes.any { type -> 
-                                    type.toString().contains("LOCALITY") || 
-                                    type.toString().contains("POSTAL_CODE")
+                                prediction.getPlaceTypes().any { type -> 
+                                    type == Place.Type.LOCALITY || 
+                                    type == Place.Type.POSTAL_CODE
                                 }
                             }
                             isDropdownExpanded = predictions.isNotEmpty()
