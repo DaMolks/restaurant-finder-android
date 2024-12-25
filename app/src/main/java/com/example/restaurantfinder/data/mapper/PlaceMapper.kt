@@ -33,19 +33,14 @@ class PlaceMapper {
     }
 
     private fun getCuisineType(place: Place): String {
-        // Utiliser l'API recommandée pour obtenir les types
-        val placeTypes = place.types
-        return placeTypes
-            ?.mapNotNull { it?.name }
-            ?.firstOrNull { type ->
-                type.contains("RESTAURANT", ignoreCase = true) || 
-                type.contains("FOOD", ignoreCase = true) || 
-                type.contains("CUISINE", ignoreCase = true)
-            }
-            ?.replace("_", " ")
-            ?.replace("CUISINE", "")
-            ?.trim()
-            ?.replaceFirstChar { it.uppercase() } 
-            ?: "Restaurant"
+        // Méthode alternative pour déterminer le type de cuisine
+        return when {
+            place.name?.contains("Pizza", ignoreCase = true) -> "Pizza"
+            place.name?.contains("Burger", ignoreCase = true) -> "Fast Food"
+            place.name?.contains("Sushi", ignoreCase = true) -> "Japonais"
+            place.name?.contains("Café", ignoreCase = true) -> "Café"
+            place.name?.contains("Restaurant", ignoreCase = true) -> "Restaurant"
+            else -> "Restaurant"
+        }
     }
 }
