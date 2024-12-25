@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.android.libraries.places.api.model.AutocompletePrediction
-import com.google.android.libraries.places.api.model.TypeFilter
 import com.google.android.libraries.places.api.model.LocationBias
 import com.google.android.libraries.places.api.model.RectangularBounds
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
@@ -54,7 +53,6 @@ fun LocationSearchBar(
 
                             val request = FindAutocompletePredictionsRequest.builder()
                                 .setLocationBias(bias)
-                                .setTypeFilter(TypeFilter.CITIES)
                                 .setQuery(newQuery)
                                 .setCountries("FR")
                                 .build()
@@ -63,7 +61,12 @@ fun LocationSearchBar(
                             val response = placesClient.findAutocompletePredictions(request).await()
                             Log.d("SearchBar", "Reçu ${response.autocompletePredictions.size} prédictions")
                             
-                            predictions = response.autocompletePredictions
+                            predictions = response.autocompletePredictions.filter { prediction ->
+                                prediction.placeTypes.any { type -> 
+                                    type.toString().contains("LOCALITY") || 
+                                    type.toString().contains("POSTAL_CODE")
+                                }
+                            }
                             isDropdownExpanded = predictions.isNotEmpty()
                             
                             if (predictions.isEmpty()) {
