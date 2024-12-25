@@ -1,6 +1,7 @@
 package com.example.restaurantfinder.ui.screens
 
 import android.location.Location
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
