@@ -9,23 +9,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
-import com.example.restaurantfinder.model.Restaurant
-import com.example.restaurantfinder.ui.components.RestaurantCard
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.net.PlacesClient
+import com.example.restaurantfinder.data.PlacesService
+import com.example.restaurantfinder.ui.screens.RestaurantSearchScreen
 import com.example.restaurantfinder.ui.theme.RestaurantFinderTheme
-import com.example.restaurantfinder.utils.*
 
 class MainActivity : ComponentActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var placesClient: PlacesClient
+    private lateinit var placesService: PlacesService
     private var currentLocation: Location? = null
 
     private val locationPermissionRequest = registerForActivityResult(
@@ -48,6 +46,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (!Places.isInitialized()) {
+            Places.initialize(applicationContext, BuildConfig.MAPS_API_KEY)
+        }
+        placesClient = Places.createClient(this)
+        placesService = PlacesService(placesClient)
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         checkLocationPermission()
         
@@ -57,7 +62,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    RestaurantSearchScreen(currentLocation)
+                    RestaurantSearchScreen(
+                        currentLocation = currentLocation,
+                        placesClient = placesClient,
+                        placesService = placesService
+                    )
                 }
             }
         }
@@ -91,85 +100,6 @@ class MainActivity : ComponentActivity() {
                 "Erreur lors de l'accès à la localisation",
                 Toast.LENGTH_SHORT
             ).show()
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RestaurantSearchScreen(currentLocation: Location?) {
-    var citySearch by remember { mutableStateOf("") }
-    var restaurants by remember { mutableStateOf<List<Restaurant>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-
-    LaunchedEffect(currentLocation) {
-        if (currentLocation != null) {
-            isLoading = true
-            try {
-                restaurants = getNearbyRestaurants(currentLocation.latitude, currentLocation.longitude)
-            } catch (e: Exception) {
-                Toast.makeText(
-                    context,
-                    "Erreur lors de la recherche des restaurants",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } finally {
-                isLoading = false
-            }
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        if (currentLocation != null) {
-            Text(
-                text = "Restaurants près de vous",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-        }
-
-        TextField(
-            value = citySearch,
-            onValueChange = { citySearch = it },
-            label = { Text("Rechercher une autre ville") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            singleLine = true
-        )
-
-        Button(
-            onClick = {
-                if (citySearch.isNotBlank()) {
-                    restaurants = searchRestaurantsByCity(citySearch)
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Rechercher")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-        }
-
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(restaurants) { restaurant ->
-                RestaurantCard(restaurant = restaurant)
-            }
         }
     }
 }
