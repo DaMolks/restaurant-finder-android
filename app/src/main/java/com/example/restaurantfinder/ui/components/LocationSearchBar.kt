@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.google.android.libraries.places.api.model.AutocompletePrediction
@@ -24,7 +26,10 @@ import kotlinx.coroutines.tasks.await
 @Composable
 fun LocationSearchBar(
     placesClient: PlacesClient,
-    onLocationSelected: (AutocompletePrediction) -> Unit
+    onLocationSelected: (AutocompletePrediction) -> Unit,
+    modifier: Modifier = Modifier,
+    shape: Shape = MaterialTheme.shapes.medium,
+    colors: TextFieldColors = TextFieldDefaults.colors()
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var predictions by remember { mutableStateOf<List<AutocompletePrediction>>(emptyList()) }
@@ -33,7 +38,7 @@ fun LocationSearchBar(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    Column {
+    Column(modifier = modifier) {
         TextField(
             value = searchQuery,
             onValueChange = { newQuery ->
@@ -68,9 +73,11 @@ fun LocationSearchBar(
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
             placeholder = { Text("Entrez une ville ou un code postal") },
-            singleLine = true
+            singleLine = true,
+            shape = shape,
+            colors = colors
         )
 
         if (isDropdownExpanded) {
