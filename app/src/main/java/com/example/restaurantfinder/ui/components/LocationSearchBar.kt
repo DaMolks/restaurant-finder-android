@@ -62,7 +62,7 @@ fun LocationSearchBar(
                         Log.d("SearchBar", "Recherche pour: ${newValue.text}")
                         delay(300) // Délai pour éviter trop de requêtes
                         val request = FindAutocompletePredictionsRequest.builder()
-                            .setTypeFilter(TypeFilter.CITIES)
+                            .setTypeFilter(null) // Enlever la restriction de type
                             .setQuery(newValue.text)
                             .build()
 
@@ -87,7 +87,7 @@ fun LocationSearchBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            placeholder = { Text("Entrez une ville ou un code postal") },
+            placeholder = { Text("Rechercher une ville, un restaurant...") },
             singleLine = true,
             shape = shape,
             colors = colors,
@@ -104,7 +104,6 @@ fun LocationSearchBar(
             keyboardActions = KeyboardActions(
                 onSearch = {
                     keyboardController?.hide()
-                    // Vous pouvez ajouter une action de recherche ici si nécessaire
                 }
             ),
             textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface)
@@ -121,7 +120,7 @@ fun LocationSearchBar(
                         headlineContent = { Text(prediction.getPrimaryText(null).toString()) },
                         supportingContent = { Text(prediction.getSecondaryText(null).toString()) },
                         modifier = Modifier.clickable {
-                            Log.d("SearchBar", "Ville sélectionnée: ${prediction.getFullText(null)}")
+                            Log.d("SearchBar", "Lieu sélectionné: ${prediction.getFullText(null)}")
                             searchQuery = TextFieldValue(prediction.getPrimaryText(null).toString())
                             isDropdownExpanded = false
                             onLocationSelected(prediction)
