@@ -62,3 +62,114 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    private fun checkLocationPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                getCurrentLocation()
+            }
+            else -> {
+                locationPermissionRequest.launch(arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ))
+            }
+        }
+    }
+
+    private fun getCurrentLocation() {
+        try {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                currentLocation = location
+            }
+        } catch (e: SecurityException) {
+            Toast.makeText(
+                this,
+                "Erreur lors de l'accès à la localisation",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RestaurantSearchScreen(currentLocation: Location?) {
+    var citySearch by remember { mutableStateOf("") }
+    var restaurants by remember { mutableStateOf<List<Restaurant>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    LaunchedEffect(currentLocation) {
+        if (currentLocation != null) {
+            isLoading = true
+            try {
+                restaurants = getNearbyRestaurants(currentLocation.latitude, currentLocation.longitude)
+            } catch (e: Exception) {
+                Toast.makeText(
+                    context,
+                    "Erreur lors de la recherche des restaurants",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        if (currentLocation != null) {
+            Text(
+                text = "Restaurants près de vous",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+
+        TextField(
+            value = citySearch,
+            onValueChange = { citySearch = it },
+            label = { Text("Rechercher une autre ville") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            singleLine = true
+        )
+
+        Button(
+            onClick = {
+                if (citySearch.isNotBlank()) {
+                    restaurants = searchRestaurantsByCity(citySearch)
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Rechercher")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(restaurants) { restaurant ->
+                RestaurantCard(restaurant = restaurant)
+            }
+        }
+    }
+}
