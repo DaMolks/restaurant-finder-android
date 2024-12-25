@@ -2,9 +2,7 @@ package com.example.restaurantfinder.ui.screens
 
 import android.location.Location
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,9 +28,10 @@ import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterial3Api::class, MapsComposeExperimentalApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RestaurantSearchScreen(
     currentLocation: Location?,
@@ -96,8 +95,9 @@ fun RestaurantSearchScreen(
                             val placeResponse = withContext(Dispatchers.IO) {
                                 placesClient.fetchPlace(request).await()
                             }
+                            val latLng = placeResponse.place.latLng
 
-                            placeResponse.place.latLng?.let { latLng ->
+                            if (latLng != null) {
                                 restaurants = withContext(Dispatchers.IO) {
                                     placesService.searchRestaurantsByLocation(prediction)
                                 }.sortedByDescending { it.rating }
