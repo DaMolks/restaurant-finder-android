@@ -59,16 +59,21 @@ fun LocationSearchBar(
                 searchJob?.cancel()
                 if (newValue.text.length >= 2) {
                     searchJob = coroutineScope.launch {
+                        Log.d("LocationSearchBar", "Recherche de: ${newValue.text}")
                         delay(300) // Délai pour éviter trop de requêtes
                         val request = FindAutocompletePredictionsRequest.builder()
                             .setQuery(newValue.text)
+                            .setTypeFilter(TypeFilter.CITIES)
                             .build()
 
                         try {
                             val response = placesClient.findAutocompletePredictions(request).await()
+                            Log.d("LocationSearchBar", "Réponse reçue: ${response.autocompletePredictions.size} prédictions")
                             predictions = response.autocompletePredictions
                             isDropdownExpanded = predictions.isNotEmpty()
+                            Log.d("LocationSearchBar", "Liste déroulante visible : $isDropdownExpanded")
                         } catch (e: Exception) {
+                            Log.e("LocationSearchBar", "Erreur de recherche", e)
                             Toast.makeText(context, "Erreur de recherche: ${e.message}", Toast.LENGTH_SHORT).show()
                             predictions = emptyList()
                             isDropdownExpanded = false
@@ -103,6 +108,7 @@ fun LocationSearchBar(
 
         // Liste déroulante des prédictions
         if (isDropdownExpanded) {
+            Log.d("LocationSearchBar", "Affichage de ${predictions.size} prédictions")
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
