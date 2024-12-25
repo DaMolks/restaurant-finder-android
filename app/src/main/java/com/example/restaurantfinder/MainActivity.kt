@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -47,11 +48,19 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (!Places.isInitialized()) {
-            Places.initialize(applicationContext, BuildConfig.MAPS_API_KEY)
+        // Initialisation de Places
+        try {
+            if (!Places.isInitialized()) {
+                Places.initialize(applicationContext, BuildConfig.MAPS_API_KEY)
+                Log.d("Places", "API Key: ${BuildConfig.MAPS_API_KEY}")
+            }
+            placesClient = Places.createClient(this)
+            placesService = PlacesService(placesClient)
+            Log.d("Places", "Places initialisé avec succès")
+        } catch (e: Exception) {
+            Log.e("Places", "Erreur lors de l'initialisation de Places", e)
+            Toast.makeText(this, "Erreur d'initialisation de Places: ${e.message}", Toast.LENGTH_LONG).show()
         }
-        placesClient = Places.createClient(this)
-        placesService = PlacesService(placesClient)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         checkLocationPermission()
@@ -93,8 +102,12 @@ class MainActivity : ComponentActivity() {
         try {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 currentLocation = location
+                Log.d("Location", "Position obtenue: ${location?.latitude}, ${location?.longitude}")
+            }.addOnFailureListener { e ->
+                Log.e("Location", "Erreur lors de l'obtention de la position", e)
             }
         } catch (e: SecurityException) {
+            Log.e("Location", "Erreur de permission", e)
             Toast.makeText(
                 this,
                 "Erreur lors de l'accès à la localisation",
