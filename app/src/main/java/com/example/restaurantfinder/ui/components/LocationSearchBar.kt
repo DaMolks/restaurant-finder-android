@@ -59,22 +59,17 @@ fun LocationSearchBar(
                 searchJob?.cancel()
                 if (newValue.text.length >= 2) {
                     searchJob = coroutineScope.launch {
-                        Log.d("SearchBar", "Recherche pour: ${newValue.text}")
                         delay(300) // Délai pour éviter trop de requêtes
                         val request = FindAutocompletePredictionsRequest.builder()
-                            .setTypeFilter(null) // Enlever la restriction de type
                             .setQuery(newValue.text)
                             .build()
 
                         try {
-                            Log.d("SearchBar", "Envoi de la requête d'autocomplétion")
                             val response = placesClient.findAutocompletePredictions(request).await()
-                            Log.d("SearchBar", "Réponse reçue: ${response.autocompletePredictions.size} prédictions")
                             predictions = response.autocompletePredictions
                             isDropdownExpanded = predictions.isNotEmpty()
                         } catch (e: Exception) {
-                            Log.e("SearchBar", "Erreur lors de la recherche", e)
-                            Toast.makeText(context, "Erreur: ${e.message}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Erreur de recherche: ${e.message}", Toast.LENGTH_SHORT).show()
                             predictions = emptyList()
                             isDropdownExpanded = false
                         }
@@ -87,7 +82,7 @@ fun LocationSearchBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            placeholder = { Text("Rechercher une ville, un restaurant...") },
+            placeholder = { Text("Rechercher un lieu, un restaurant...") },
             singleLine = true,
             shape = shape,
             colors = colors,
@@ -102,13 +97,11 @@ fun LocationSearchBar(
                 imeAction = ImeAction.Search
             ),
             keyboardActions = KeyboardActions(
-                onSearch = {
-                    keyboardController?.hide()
-                }
-            ),
-            textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface)
+                onSearch = { keyboardController?.hide() }
+            )
         )
 
+        // Liste déroulante des prédictions
         if (isDropdownExpanded) {
             LazyColumn(
                 modifier = Modifier
@@ -120,7 +113,6 @@ fun LocationSearchBar(
                         headlineContent = { Text(prediction.getPrimaryText(null).toString()) },
                         supportingContent = { Text(prediction.getSecondaryText(null).toString()) },
                         modifier = Modifier.clickable {
-                            Log.d("SearchBar", "Lieu sélectionné: ${prediction.getFullText(null)}")
                             searchQuery = TextFieldValue(prediction.getPrimaryText(null).toString())
                             isDropdownExpanded = false
                             onLocationSelected(prediction)
