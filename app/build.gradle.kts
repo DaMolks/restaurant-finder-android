@@ -32,6 +32,7 @@ android {
     
     buildFeatures {
         buildConfig = true
+        compose = true
     }
 
     compileOptions {
@@ -41,10 +42,6 @@ android {
     
     kotlinOptions {
         jvmTarget = "21"
-    }
-    
-    buildFeatures {
-        compose = true
     }
     
     composeOptions {
@@ -75,6 +72,10 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.google.android.libraries.places:places:3.3.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
+    // Google Maps Compose
+    implementation("com.google.maps.android:maps-compose:2.15.0")
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
