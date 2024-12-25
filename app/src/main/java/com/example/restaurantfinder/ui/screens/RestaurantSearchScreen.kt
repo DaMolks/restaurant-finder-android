@@ -5,6 +5,8 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,8 +23,10 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.maps.android.compose.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await // Ajout de cette import
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class, MapsComposeExperimentalApi::class)
 @Composable
@@ -33,7 +37,7 @@ fun RestaurantSearchScreen(
 ) {
     var restaurants by remember { mutableStateOf<List<Restaurant>>(emptyList()) }
     var isLoading by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
     // Position par défaut (Paris)
@@ -49,7 +53,9 @@ fun RestaurantSearchScreen(
         if (currentLocation != null) {
             isLoading = true
             try {
-                restaurants = placesService.searchNearbyRestaurants(currentLocation)
+                restaurants = withContext(Dispatchers.IO) {
+                    placesService.searchNearbyRestaurants(currentLocation)
+                }
                 cameraPositionState.position = CameraPosition.fromLatLngZoom(
                     LatLng(currentLocation.latitude, currentLocation.longitude), 
                     12f
@@ -75,8 +81,38 @@ fun RestaurantSearchScreen(
             cameraPositionState = cameraPositionState,
             properties = MapProperties(
                 isMyLocationEnabled = true
+            ),
+            uiSettings = MapUiSettings(
+                zoomControlsEnabled = false,
+                compassEnabled = false,
+                mapToolbarEnabled = false,
+                myLocationButtonEnabled = false
             )
         )
+
+        // Bouton de localisation en bas à gauche
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            contentAlignment = Alignment.BottomStart
+        ) {
+            FilledTonalIconButton(
+                onClick = {
+                    currentLocation?.let { location ->
+                        cameraPositionState.position = CameraPosition.fromLatLngZoom(
+                            LatLng(location.latitude, location.longitude), 
+                            12f
+                        )
+                    }
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MyLocation,
+                    contentDescription = "Ma position"
+                )
+            }
+        }
 
         // Conteneur semi-transparent pour le contenu
         Box(
@@ -98,18 +134,21 @@ fun RestaurantSearchScreen(
                         unfocusedContainerColor = Color.White.copy(alpha = 0.8f)
                     ),
                     onLocationSelected = { prediction ->
-                        scope.launch {
-                            isLoading = true
+                        coroutineScope.launch {
                             try {
+                                isLoading = true
                                 // Récupérer les détails du lieu
                                 val placeFields = listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG)
                                 val request = FetchPlaceRequest.newInstance(prediction.placeId, placeFields)
-                                val placeResponse = placesClient.fetchPlace(request).await()
+                                val placeResponse = withContext(Dispatchers.IO) {
+                                    placesClient.fetchPlace(request).await()
+                                }
                                 val place = placeResponse.place
 
                                 // Rechercher les restaurants
-                                val results = placesService.searchRestaurantsByLocation(prediction)
-                                restaurants = results
+                                restaurants = withContext(Dispatchers.IO) {
+                                    placesService.searchRestaurantsByLocation(prediction)
+                                }
 
                                 // Mettre à jour la position de la caméra
                                 place.latLng?.let { latLng ->
