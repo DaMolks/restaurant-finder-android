@@ -34,9 +34,9 @@ class PlaceMapper {
 
     private fun getCuisineType(place: Place): String {
         return place.types?.firstOrNull { type ->
-            type.contains("cuisine") || 
-            type.contains("food") || 
-            type == "restaurant"
-        }?.replace("_", " ")?.capitalize() ?: "Restaurant"
+            type.toString().indexOf("cuisine") >= 0 || 
+            type.toString().indexOf("food") >= 0 || 
+            type.toString() == "restaurant"
+        }?.toString()?.replace("_", " ")?.replaceFirstChar { it.uppercase() } ?: "Restaurant"
     }
 }
